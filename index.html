@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Controle Financeiro</h1>
+                <p class="text-gray-600">Gerencie suas finanças de forma simples</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                    <input type="email" id="email" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Senha</label>
+                    <input type="password" id="password" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <button id="toggleForm" class="text-blue-500 hover:text-blue-600">
+                    Não tem uma conta? Cadastre-se
+                </button>
+            </div>
+
+            <!-- Register Form (Hidden by default) -->
+            <form id="registerForm" class="hidden space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="registerPassword">Senha</label>
+                    <input type="password" id="registerPassword" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">Confirmar Senha</label>
+                    <input type="password" id="confirmPassword" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors">
+                    Cadastrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between login and register forms
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const toggleButton = document.getElementById('toggleForm');
+
+        toggleButton.addEventListener('click', () => {
+            loginForm.classList.toggle('hidden');
+            registerForm.classList.toggle('hidden');
+            toggleButton.textContent = loginForm.classList.contains('hidden') 
+                ? 'Já tem uma conta? Faça login' 
+                : 'Não tem uma conta? Cadastre-se';
+        });
+
+        // Função para mostrar notificações
+        function showNotification(message, isError = false) {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: isError ? "#EF4444" : "#10B981",
+                }
+            }).showToast();
+        }
+
+        // Handle login form submission
+        // Atualize o evento de submit do formulário de login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+        
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Adicione um console.log para debug
+                    console.log('Token recebido:', data.token);
+                    
+                    // Limpe qualquer token antigo
+                    localStorage.clear();
+                    
+                    // Salve o novo token
+                    localStorage.setItem('token', data.token);
+                    
+                    // Verifique se o token foi salvo
+                    const savedToken = localStorage.getItem('token');
+                    console.log('Token salvo:', savedToken);
+                    
+                    if (savedToken) {
+                        window.location.href = './dashboard.html';
+                    } else {
+                        showNotification('Erro ao salvar token de autenticação', true);
+                    }
+                } else {
+                    showNotification(data.error || 'Erro ao fazer login', true);
+                }
+            } catch (error) {
+                console.error('Erro durante login:', error);
+                showNotification('Erro ao conectar com o servidor', true);
+            }
+        });
+
+        // Handle register form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                showNotification('As senhas não coincidem!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification('Cadastro realizado com sucesso!');
+                    toggleButton.click();
+                } else {
+                    showNotification(data.error || 'Erro ao realizar cadastro', true);
+                }
+            } catch (error) {
+                showNotification('Erro ao conectar com o servidor', true);
+            }
+        });
+    </script>
+</body>
+</html>

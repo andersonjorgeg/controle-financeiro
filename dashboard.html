@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Controle Financeiro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100">
+  <nav class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <i class="fas fa-wallet text-white mr-2"></i>
+          <h1 class="text-xl font-bold text-white">Controle Financeiro</h1>
+        </div>
+        <div class="flex items-center">
+          <span id="userEmail" class="mr-4 text-white"></span>
+          <button id="logoutBtn" class="text-white hover:text-red-200 flex items-center">
+            <i class="fas fa-sign-out-alt mr-1"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <div id="deleteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Confirmar Exclusão</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">
+              Tem certeza que deseja excluir esta transação?
+            </p>
+          </div>
+          <div class="flex justify-center gap-4 mt-4">
+            <button id="confirmDelete"
+              class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+              Excluir
+            </button>
+            <button id="cancelDelete"
+              class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Saldo -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Saldo Total</h2>
+        <p class="text-2xl font-bold text-blue-600">R$ <span id="totalBalance">0,00</span></p>
+      </div>
+      <!-- Receitas -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Receitas</h2>
+        <p class="text-2xl font-bold text-green-600">R$ <span id="totalIncome">0,00</span></p>
+      </div>
+      <!-- Despesas -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Despesas</h2>
+        <p class="text-2xl font-bold text-red-600">R$ <span id="totalExpenses">0,00</span></p>
+      </div>
+    </div>
+
+    <!-- Adicionar Transação -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Nova Transação</h2>
+      <form id="transactionForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+            Descrição
+          </label>
+          <input type="text" id="description" required
+            class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+            Valor (R$)
+          </label>
+          <input type="number" id="amount" step="0.01" required
+            class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="type">
+            Tipo
+          </label>
+          <select id="type" required
+            class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="income">Receita</option>
+            <option value="expense">Despesa</option>
+          </select>
+        </div>
+        <!-- No formulário de transação, adicione após o campo tipo -->
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+            Categoria
+          </label>
+          <select id="category" required class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <!-- Opções serão preenchidas via JavaScript -->
+          </select>
+        </div>
+        
+        <!-- Adicione este script após os scripts existentes -->
+        <script>
+          // Categorias disponíveis
+          const CATEGORIAS = {
+            income: [
+              { valor: 'salario', texto: 'Salário' },
+              { valor: 'investimentos', texto: 'Investimentos' },
+              { valor: 'outros', texto: 'Outros' }
+            ],
+            expense: [
+              { valor: 'alimentacao', texto: 'Alimentação' },
+              { valor: 'transporte', texto: 'Transporte' },
+              { valor: 'lazer', texto: 'Lazer' },
+              { valor: 'contas', texto: 'Contas' },
+              { valor: 'outros', texto: 'Outros' }
+            ]
+          };
+        
+          // Atualiza as opções de categoria baseado no tipo selecionado
+          function atualizarCategorias() {
+            const tipo = document.getElementById('type').value;
+            const categoriaSelect = document.getElementById('category');
+            categoriaSelect.innerHTML = '';
+            
+            CATEGORIAS[tipo].forEach(cat => {
+              const option = document.createElement('option');
+              option.value = cat.valor;
+              option.textContent = cat.texto;
+              categoriaSelect.appendChild(option);
+            });
+          }
+        
+          // Adicione o listener para atualizar categorias quando o tipo mudar
+          document.getElementById('type').addEventListener('change', atualizarCategorias);
+        
+          // Inicialize as categorias
+          atualizarCategorias();
+        </script>
+        <div class="flex items-end">
+          <button type="submit"
+            class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors">
+            Adicionar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista de Transações -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Últimas Transações</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <!-- Adicione esta função antes do script de categorias -->
+          <script>
+            // Função para obter o ícone da categoria
+            function getCategoryIcon(category) {
+              const icons = {
+                salario: 'fa-money-bill-wave',
+                investimentos: 'fa-chart-line',
+                alimentacao: 'fa-utensils',
+                transporte: 'fa-car',
+                lazer: 'fa-gamepad',
+                contas: 'fa-file-invoice-dollar',
+                outros: 'fa-box'
+              };
+              return icons[category] || 'fa-tag';
+            }
+          </script>
+          <!-- Atualize o cabeçalho da tabela para incluir a coluna de categoria -->
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsList" class="bg-white divide-y divide-gray-200">
+            <!-- Transactions will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Verificar autenticação
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/index.html';
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/index.html';
+    });
+
+    // Formatar valor em reais
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2
+      }).format(value);
+    }
+
+    // Atualizar o email do usuário
+    async function updateUserInfo() {
+      try {
+        const response = await fetch('http://localhost:3000/api/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        document.getElementById('userEmail').textContent = data.email;
+      } catch (error) {
+        console.error('Erro ao buscar informações do usuário:', error);
+      }
+    }
+
+    // Carregar transações
+    // Atualize a função loadTransactions para incluir o token corretamente
+    async function loadTransactions() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/index.html';
+          return;
+        }
+    
+        const response = await fetch('http://localhost:3000/api/transactions', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+    
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('token');
+          window.location.href = '/index.html';
+          return;
+        }
+    
+        const transactions = await response.json();
+        const tbody = document.getElementById('transactionsList');
+        tbody.innerHTML = '';
+    
+        let totalIncome = 0;
+        let totalExpenses = 0;
+    
+        transactions.forEach(transaction => {
+          const row = document.createElement('tr');
+          const amount = parseFloat(transaction.amount);
+    
+          if (transaction.type === 'income') {
+            totalIncome += amount;
+          } else {
+            totalExpenses += amount;
+          }
+          row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${new Date(transaction.created_at).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${transaction.description}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                            R$ ${formatCurrency(amount)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <i class="fas ${getCategoryIcon(transaction.category)} mr-1"></i>
+                            ${CATEGORIAS[transaction.type].find(cat => cat.valor === transaction.category)?.texto || transaction.category}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <button data-id="${transaction.id}"
+                                    class="delete-btn text-red-600 hover:text-red-900">
+                                Excluir
+                            </button>
+                        </td>
+                    `;
+          tbody.appendChild(row);
+          // Adicionar event listener para o botão de deletar
+          const deleteBtn = row.querySelector('.delete-btn');
+          // Global notification function
+          function showNotification(message, isError = false) {
+            console.log('Chamando showNotification:', { message, isError });
+            try {
+              Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                  background: isError ? "#EF4444" : "#10B981",
+                }
+              }).showToast();
+              console.log('Notificação exibida com sucesso');
+            } catch (error) {
+              console.error('Erro ao mostrar notificação:', error);
+            }
+          }
+          // In the loadTransactions function, update the delete button event listener:
+          deleteBtn.addEventListener('click', () => {
+            const modal = document.getElementById('deleteModal');
+            const confirmBtn = document.getElementById('confirmDelete');
+            const cancelBtn = document.getElementById('cancelDelete');
+            const transactionId = deleteBtn.dataset.id;
+    
+            modal.classList.remove('hidden');
+    
+            const closeModal = () => {
+              modal.classList.add('hidden');
+              confirmBtn.removeEventListener('click', handleDelete);
+              cancelBtn.removeEventListener('click', handleCancel);
+              modal.removeEventListener('click', handleOutsideClick); // Adicione esta linha
+            };
+    
+            const handleDelete = async () => {
+              try {
+                const response = await fetch(`http://localhost:3000/api/transactions/${transactionId}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Authorization': `Bearer ${token}`
+                  }
+                });
+    
+    
+                if (response.ok) {
+                  loadTransactions(); // Recarrega a lista
+                  showNotification('Transação excluída com sucesso!');
+                } else {
+                  const data = await response.json();
+                  showNotification(data.error || 'Erro ao excluir transação', true);
+                }
+              } catch (error) {
+                showNotification('Erro ao conectar com o servidor', true);
+              }
+            }
+            const handleCancel = () => {
+              closeModal();
+            };
+            confirmBtn.addEventListener('click', handleDelete);
+            cancelBtn.addEventListener('click', handleCancel);
+            // Fechar modal ao clicar fora dele
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                closeModal();
+              }
+            });
+          });
+        }); //forEach loop closing bracket
+    
+        document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+        document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+        document.getElementById('totalBalance').textContent = formatCurrency(totalIncome - totalExpenses);
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+      } // missing closing bracket added here for try block in loadTransactions
+    }
+    // Adicionar nova transação
+    // Atualize o evento de submit do formulário
+    document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+    
+      const description = document.getElementById('description').value;
+      const amount = document.getElementById('amount').value;
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category').value;
+    
+      try {
+        const response = await fetch('http://localhost:3000/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            description,
+            amount,
+            type,
+            category
+          })
+        });
+    
+        if (response.ok) {
+          document.getElementById('transactionForm').reset();
+          loadTransactions();
+          showNotification('Transação adicionada com sucesso!');
+        } else {
+          const data = await response.json();
+          showNotification(data.error || 'Erro ao adicionar transação', true);
+        }
+      } catch (error) {
+        showNotification('Erro ao conectar com o servidor', true);
+      }
+    });
+    // Inicialização
+    updateUserInfo();
+    loadTransactions();
+  </script>
+</body>
+
+</html>
