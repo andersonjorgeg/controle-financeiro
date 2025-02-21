@@ -4,6 +4,9 @@
 
 ---
 
+## regras
+1. sempre responda e ptbr
+
 ## 1. Visão Geral do Projeto
 
 **Objetivo:**  
@@ -13,15 +16,15 @@ Desenvolver uma aplicação web que auxilie o usuário a registrar, acompanhar e
 
 ## 2. Objetivos do MVP
 
-- **Cadastro e autenticação de usuários:**  
+- ✅ **Cadastro e autenticação de usuários:**  
   Permitir que cada usuário tenha sua conta pessoal.
-- **Registro de transações:**  
+- ✅ **Registro de transações:**  
   Possibilitar a inserção de receitas e despesas com informações básicas.
-- **Dashboard de resumo:**  
+- ✅ **Dashboard de resumo:**  
   Exibir um painel com saldo total, total de receitas e despesas, e gráficos simples.
-- **Listagem e filtragem de transações:**  
+- ✅ **Listagem e filtragem de transações:**  
   Permitir que o usuário visualize e filtre suas transações por data, categoria e tipo.
-- **Edição e exclusão:**  
+- ✅ **Edição e exclusão:**  
   Oferecer a opção de alterar ou remover transações já cadastradas.
 
 ---
@@ -29,30 +32,30 @@ Desenvolver uma aplicação web que auxilie o usuário a registrar, acompanhar e
 ## 3. Requisitos Funcionais
 
 ### Cadastro e Login
-- O sistema deve permitir o registro de novos usuários com email e senha.
-- O usuário deve poder fazer login e logout de forma segura.
+- ✅ O sistema deve permitir o registro de novos usuários com email e senha.
+- ✅ O usuário deve poder fazer login e logout de forma segura.
 
 ### Gerenciamento de Transações
-- **Inserção:**  
+- ✅ **Inserção:**  
   Permitir adicionar uma transação com os seguintes campos:
-  - Data da transação.
-  - Valor.
-  - Tipo: Receita ou Despesa.
-  - Categoria (ex.: alimentação, transporte, lazer).
-  - Descrição opcional.
-- **Edição/Exclusão:**  
+  - ✅ Data da transação.
+  - ✅ Valor.
+  - ✅ Tipo: Receita ou Despesa.
+  - ✅ Categoria (ex.: alimentação, transporte, lazer).
+  - ✅ Descrição opcional.
+- ✅ **Edição/Exclusão:**  
   Possibilitar a alteração ou remoção de transações cadastradas.
 
 ### Dashboard/Resumo Financeiro
-- Exibir um resumo com:
-  - Saldo atual.
-  - Total de receitas.
-  - Total de despesas.
-- Mostrar gráficos simples (por exemplo, gráfico de pizza para categorias ou gráfico de barras para evolução no tempo).
+- ✅ Exibir um resumo com:
+  - ✅ Saldo atual.
+  - ✅ Total de receitas.
+  - ✅ Total de despesas.
+- ✅ Mostrar gráficos simples (por exemplo, gráfico de pizza para categorias ou gráfico de barras para evolução no tempo).
 
 ### Listagem e Filtragem
-- Listar todas as transações registradas.
-- Permitir filtros por data, categoria e tipo de transação.
+- ✅ Listar todas as transações registradas.
+- ✅ Permitir filtros por data, categoria e tipo de transação.
 
 ### Relatórios Simples
 - Gerar um extrato financeiro mensal para visualização do histórico de transações.

@@ -96,14 +96,12 @@ const authenticateToken = (req, res, next) => {
 };
 // No início do arquivo, após as importações
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
 });
 
 // Na rota de transações
 app.get('/api/transactions', authenticateToken, (req, res) => {
     try {
-        console.log('Buscando transações para usuário:', req.user.userId);
         db.all(
             'SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC',
             [req.user.userId],
@@ -112,12 +110,10 @@ app.get('/api/transactions', authenticateToken, (req, res) => {
                     console.error('Erro no banco:', err);
                     return res.status(500).json({ error: 'Erro ao buscar transações' });
                 }
-                console.log('Transações encontradas:', transactions?.length || 0);
                 res.json(transactions || []);
             }
         );
     } catch (error) {
-        console.error('Erro no servidor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
@@ -142,15 +138,17 @@ db.run(`
 // Update the POST route for transactions
 app.post('/api/transactions', authenticateToken, async (req, res) => {
     const { description, amount, type, category } = req.body;
-    console.log('Dados recebidos:', { description, amount, type, category });
-    console.log('Usuário:', req.user);
 
     try {
+        const now = new Date();
+        const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+            now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+
         const result = await db.run(
-            'INSERT INTO transactions (user_id, description, amount, type, category) VALUES (?, ?, ?, ?, ?)',
-            [req.user.userId, description, amount, type, category]
+            'INSERT INTO transactions (user_id, description, amount, type, category, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [req.user.userId, description, amount, type, category, utcDate.toISOString()]
         );
-        console.log('Transação criada com ID:', result.lastID);
+
         res.json({ id: result.lastID });
     } catch (error) {
         console.error('Erro ao criar transação:', error);
@@ -180,7 +178,7 @@ app.delete('/api/transactions/:id', authenticateToken, (req, res) => {
 // Rota para obter informações do usuário
 app.get('/api/user', authenticateToken, (req, res) => {
     try {
-        console.log('Buscando informações do usuário:', req.user.userId);
+
         db.get(
             'SELECT id, email FROM users WHERE id = ?',
             [req.user.userId],
@@ -196,7 +194,6 @@ app.get('/api/user', authenticateToken, (req, res) => {
             }
         );
     } catch (error) {
-        console.error('Erro no servidor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });

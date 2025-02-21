@@ -105,18 +105,11 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Adicione um console.log para debug
-                    console.log('Token recebido:', data.token);
-                    
                     // Limpe qualquer token antigo
                     localStorage.clear();
                     
                     // Salve o novo token
                     localStorage.setItem('token', data.token);
-                    
-                    // Verifique se o token foi salvo
-                    const savedToken = localStorage.getItem('token');
-                    console.log('Token salvo:', savedToken);
                     
                     if (savedToken) {
                         window.location.href = './dashboard.html';
@@ -127,7 +120,7 @@
                     showNotification(data.error || 'Erro ao fazer login', true);
                 }
             } catch (error) {
-                console.error('Erro durante login:', error);
+
                 showNotification('Erro ao conectar com o servidor', true);
             }
         });
